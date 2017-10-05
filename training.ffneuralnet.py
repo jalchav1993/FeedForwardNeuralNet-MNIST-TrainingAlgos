@@ -11,9 +11,9 @@ BSPEC = 0.1999;
 WSPEC = 0.1999;
 DELTASPEC = 0.0666;
 STEP = 1313;
-H0_LEN = 90;
-H1_LEN = 60;
-L = 0.001;
+H0_LEN = 900;
+H1_LEN = 600;
+L = 0.0066;
 def findWeightsRandom():
   w = [];
   b = [];
@@ -64,28 +64,29 @@ def findWeightsBackDrop():
   b.append(findRandomBias(H0_LEN, BSPEC));
   b.append(findRandomBias(H1_LEN, BSPEC));
   b.append(findRandomBias(10, BSPEC));
-  (batchx, batchy) = findRandomBatch(F.x_train, F.y_train);
+  #magick
   for i in range(100):
     print i;
-    #magick
     (batchx, batchy) = findRandomBatch(F.x_train, F.y_train);
+    y_l = logit([y * 0.9 + 0.05 for y in batchy]);
     h0 = F.relu(np.dot(batchx,w[0])+ b[0]);
     h1 = F.relu(np.dot(h0,w[1]) + b[1]);
     P = F.sigmoid(np.dot(h1,w[2]) + b[2]);
     #dP = np.multiply(np.multiply((P - batchy), P), (1-P));
-    dP_ = np.multiply((P - batchy), P);
-    dP= np.multiply(dP_, (1-P));
+    dP_ = (P - y_l)* P;
+    dP= dP_*  (1-P);
     #transposed weights concatenated
-    W_t = [weight.T for weight in w];
-    dH1 = np.multiply(np.dot(dP,W_t[2]), sign(h1));
-    dH0 = np.multiply(np.dot(dH1,W_t[1]), sign(h0));
+    W_t = [np.transpose(weight) for weight in w];
+    dH1 = np.dot(dP,W_t[2]) * sign(h1);
+    dH0 = np.dot(dH1,W_t[1])* sign(h0);
     #what is the significance of this transformation? I wonder
-    w[2] = w[2] - L * np.dot(h1.T, dP);
-    w[1] = w[1] - L * np.dot(h0.T, dH1);
-    w[0] = w[0] - L * np.dot(np.array(batchx).T, dH0);
+    w[2] = w[2] - L * np.dot(np.transpose(h1), dP);
+    w[1] = w[1] - L * np.dot(np.transpose(h0), dH1);
+    w[0] = w[0] - L * np.dot(np.transpose(batchx), dH0);
     b[2] = b[2] - L * np.sum(dP, axis = 0);
     b[1] = b[1] - L * np.sum(dH1, axis = 0);
     b[0] = b[0] - L * np.sum(dH0, axis = 0);
+    print (get_mean_error(y_l,P));
   return (w,b);
 def logit(y):
   return [np.log(label) - np.log(1-label) for label in y];
@@ -96,7 +97,7 @@ def sign(y):
   return y;
   
 def getdif(x):
-  if x > 1: return 1 
+  if x > 0: return 1 
   elif x == 0: return 0
   else: return -1;
   
@@ -114,7 +115,11 @@ def getDelta(w, b):
     findRandomBias(H1_LEN, DELTASPEC),
     findRandomBias(10, DELTASPEC)]);
     
+def get_mean_error(y,p):
+  return np.square(np.mean(y-p));
+    
 def get_error(w, b, x, y):
+  #need help understanding why this
   return np.mean(np.square(y-F.feedForward(x,w, b)));
   
 def add(w,b, changew, changeb):
