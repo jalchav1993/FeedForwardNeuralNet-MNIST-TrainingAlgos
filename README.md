@@ -1,1 +1,25 @@
 Several traning algorithms that use mnist dataset.
+I.	Introduction
+Several methods for learning the weights and biases a Fast Feed Forward Neural Network(FFNN) uses to recognize images. Four learning algorithms were implemented, random search, pseudo inverse, Gradient descent and backpropagation, Gradient descent and backpropagation using pseudo inverse initialization. The images, training sets come from the MNIST data set. Each algorithm yielded a set of weights and biases that were tested against a Fast Feed Forward Neural Network. From this their accuracies, loss, confusion matrix, and mean error function are saved and compared to see which algorithm is the most efficient. 
+II.	explanation
+The program initializes the weights and biases using the numpy api. These weights are used later to classify the MNIST dataset using an interface for a fast feedforward neural net. Then the program will call using the training set as parameter X the interface inside a loop, iterating for a fixed amount of time. The program will find a random batch from the training sets that is not consecutive. To do this an array of random indices I is generated and indexes both batchx and batchy mapping them to x_train and y_train. f : Batchi,j→Traini,j ∧  {(i, j): i = x∨ y , j ∈ I} .  
+ The output is evaluated against the training set parameter. This is how the algorithm learns which weights are optimal for the neural net to recognize the images. The algorithms make use of the numpy library to perform linear operations such as dot product or Hadamard product. The algorithms use matplotlib to plot their mean error function.  
+
+random search algorithm
+Proposed Solution Design
+The routine initializes a set of weights(w) and biases(b) with random values with a scale (s) with a value of 0.1999 factor as follows: numpy.random.rand(rows,cols)-0.5)*s. This is a brute force algorithm with iteration. Every iteration initializes another set of weights(w_) and biases(b_), with a smaller scale of around 0.0666 , these are evaluated against the FFNN to get the mean error which is stored. If the error is smaller than the error stored in the previous iteration,  then w = w_ and b = b_. The algorithm does this for a set amount of iterations.
+IV.	Pseudo Inverse algorithm
+Proposed Solution Design
+The routine initializes a set of weights(w) and biases(b) with random values with a scale (s) with a value of 0.1999 factor as follows: numpy.random.rand(rows,cols)-0.5)*s as is done in section III Random Search, but only the first two layers of w, b (w[0], w[1], b[0], b[1]). Then the transformation Y=Y*0.9 + 0.005 = is applied to batchy. This gives y ranges that are appropriate for the following step. b[2] is initialized with the mean of Y. Then w[2] will be initialized with the dot product of the monroe penrose pseudo-inverse of the first layer matrix  and the difference of {logit(Y): logit(x) =ln(x) - ln(1-x)} and b2. This algorithm only feeds forward and is not iterative instead it adds a last layer using linear algebra operations. The algorithm propagates forward using a pseudoinverse operation on the previous layer improving the accuracy as shown in the experimental results.
+
+V.	Gradient Descent with Backpropagation
+Proposed Solution Design
+Iterative, weights, biases, batches are randomly assigned as is done for Random Search. These are evaluated against FFNN. The algorithm computes the error gradient from the hadamard product of the difference of the output of last layer of the network P=σ(H1W2+b2) and batchy with the derivative of P. ∆P= (P−Yb)⊙P′. Then the algorithm uses this gradient to compute the gradient of the hidden layers H1, H2. The algorithm will iterate and then backpropagate to the model updating the layers using the learning rate and a gradient in order to reduce the error as shown in the experimental results. As in Pseudoinverse, the transformation Y=Y*0.9 + 0.005 = is applied to batchy to get ranges that are appropriate for the model described in this section. 
+
+VI.	Gradient Descent with Backpropagation  and PseudoInverse
+Proposed Solution Design
+This is almost the same routine as gradient descent with backpropagation but it uses pseudoinverse method to generate a set of weights instead of random values. Therefore it uses back propagation of the gradient and forward propagation of the pseudoinverse method. 
+
+VII.	Conclusions
+The algorithms were detecting outside shapes and not inside lines from the results of the last two algorithms. Gradient Descent with Backpropagation initialized randomly was slow with pseudoinverse, adding the layer of pseudoinverse seemed speed up the algorithm. It took Gradient Descent with Backpropagation and pseudo-inverse initialization at least halve the epochs to get to the same accuracy than when it was initialized randomly. Random search was the most inefficient of all the algorithms and needed more than 600 epochs to get an accuracy of 14%. Pseudoinverse gets an accuracy of 50% it is a good extra-layer but should not be the main algorithm learning. 
+
