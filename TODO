@@ -1,7 +1,6 @@
 TODO:
 1: This uses a propriatary FFNN interface. Will fork this repository with the FFNN I coded so both are part of the same project.
-2: 
-1.  Training set augmentation, Test set augmentation and testing by committee
+2:  Training set augmentation, Test set augmentation and testing by committee
 3.  L2regularization
 4.  Momentum
 5.  Optimizing parameters (learning rate, hidden layer sizes)
