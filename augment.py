@@ -43,31 +43,31 @@ class augment_model:
       'gama' : (self.PPADDING,self.LPADDING, 0, self.NPADDING), 
       'delta': (self.PPADDING, self.LPADDING, self.PPADDING, self.LPADDING),
     }
-    (a0,a1,a2,a3) = self.VECTORS['alpha'];
-    (b0,b1,b2,b3) = self.VECTORS['beta'];
-    (g0,g1,g2,g3) = self.VECTORS['gama'];
-    (d0,d1,d2,d3) = self.VECTORS['delta'];
+    self.alpha = (self.a0,self.a1,self.a2,self.a3) = self.VECTORS['alpha'];
+    self.beta = (self.b0,self.b1,self.b2,self.b3) = self.VECTORS['beta'];
+    self.gama = (self.g0,self.g1,self.g2,self.g3) = self.VECTORS['gama'];
+    self.delta = (self.d0,self.d1,self.d2,self.d3) = self.VECTORS['delta'];
     #find out this
     #only works when shift is 1, must add offset
     self.OFFSET ={
-      'up-up':(a0,a1,a2,a3), 
-      'up-rt':(b0,b1,b2,b3),
-      'up-lt':(a0,a1,a2,a3), 
-      'rt-rt':(b0,b1,b2,b3), 
-      'dn-rt':(d0,d1,d2,d3),
-      'dn-dn':(g0,g1,g2,g3), 
-      'dn-lt':(g0,g1,g2,g3), 
-      'lt-lt':(a0,a1,a2,a3)
+      'up-up':self.alpha, 
+      'up-rt':self.beta,
+      'up-lt':self.alpha, 
+      'rt-rt':self.beta, 
+      'dn-rt':self.delta,
+      'dn-dn':self.gama, 
+      'dn-lt':self.gama, 
+      'lt-lt':self.alpha
     }
     self.INSET = {
-      'up-up':(g0,g1,g2,g3), 
-      'up-rt':(g0,g1,g2,g3),
-      'up-lt':(d0,d1,d2,d3), 
-      'rt-rt':(a0,a1,a2,a3), 
-      'dn-rt':(a0,a1,a2,a3),
-      'dn-dn':(a0,a1,a2,a3), 
-      'dn-lt':(b0,b1,b2,b3), 
-      'lt-lt':(b0,b1,b2,b3)
+      'up-up':self.gama, 
+      'up-rt':self.gama,
+      'up-lt':self.delta, 
+      'rt-rt':self.alpha, 
+      'dn-rt':self.alpha,
+      'dn-dn':self.alpha, 
+      'dn-lt':self.beta, 
+      'lt-lt':self.beta
     }
 
   def shift_vect(self, vector, direction):
