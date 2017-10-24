@@ -95,6 +95,42 @@ def find_weights_backdrop(w, b):
       break;
     print ("Epoch: %d, error %f" %(i, new_error_sum));
   return (w,b, m_error);
+def find_weights_backdrop_l2(w, b, alpha_reg, beta_reg):
+  m_error = [];
+  l = L;
+  alpha_it = 0;
+  for i in range(EPOCH):
+    # this is magick
+    new_error_sum = 0;
+    (batchx, batchy) = find_random_batch(F.x_train, F.y_train);
+    # augmenting the set
+    # check this with doctor olac
+    y_l = [y * 0.9 + 0.05 for y in batchy];
+    for j in range(STEP):
+      h0 = F.relu(np.dot(batchx,w[0])+ b[0]);
+      h1 = F.relu(np.dot(h0,w[1]) + b[1]);
+      P = F.sigmoid(np.dot(h1,w[2]) + b[2]);
+      #is this the hadamard product
+      dP_ = np.multiply((P - y_l),P);
+      dP= np.multiply(dP_ ,(1-P));
+      #transposed weights concatenated
+      W_t = [np.transpose(weight) for weight in w];
+      dH1 = np.multiply(np.dot(dP,W_t[2]), sign(h1));
+      dH0 = np.multiply(np.dot(dH1,W_t[1]),sign(h0));
+      new_error = get_mean_error(batchy,P);
+      new_error_sum += new_error;
+      w[0] = w[0] - l * np.dot(np.transpose(batchx), dH0);
+      w[1] = w[1] - l * np.dot(np.transpose(h0), dH1);
+      w[2] = w[2] - l * np.dot(np.transpose(h1), dP);
+      b[0] = b[0] - l * np.sum(dH0, axis = 0);
+      b[1] = b[1] - l * np.sum(dH1, axis = 0);
+      b[2] = b[2] - l * np.sum(dP, axis = 0);
+    new_error_sum/=STEP;
+    m_error.append(new_error_sum);
+    if committee(new_error_sum):
+      break;
+    print ("Epoch: %d, error %f" %(i, new_error_sum));
+  return (w,b, m_error);
 def update_lambda(l, new_error, old_error):
   #check this
   if (new_error > old_error):
