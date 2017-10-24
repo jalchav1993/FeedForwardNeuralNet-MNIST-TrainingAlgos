@@ -20,7 +20,6 @@ class augment_model:
     global PADDING;
     global LPADDING;
     global NPADDING;
-    global VECTORS;
     global OFFSET;
     global INSET;
     global XSET;
@@ -37,16 +36,10 @@ class augment_model:
     self.STEP = self.PPADDING -  self.SHIFT;
     self.LPADDING = 2 * self.PPADDING + self.N;
     self.NPADDING = self.PPADDING + self.N;
-    self.VECTORS = {
-      'alpha': (0, self.NPADDING, 0, self.NPADDING), 
-      'beta' : (0, self.NPADDING, self.PPADDING, self.LPADDING),
-      'gama' : (self.PPADDING,self.LPADDING, 0, self.NPADDING), 
-      'delta': (self.PPADDING, self.LPADDING, self.PPADDING, self.LPADDING),
-    }
-    self.alpha = (self.a0,self.a1,self.a2,self.a3) = self.VECTORS['alpha'];
-    self.beta = (self.b0,self.b1,self.b2,self.b3) = self.VECTORS['beta'];
-    self.gama = (self.g0,self.g1,self.g2,self.g3) = self.VECTORS['gama'];
-    self.delta = (self.d0,self.d1,self.d2,self.d3) = self.VECTORS['delta'];
+    self.alpha = (self.a0,self.a1,self.a2,self.a3) = (0, self.NPADDING, 0, self.NPADDING)
+    self.beta = (self.b0,self.b1,self.b2,self.b3) = (0, self.NPADDING, self.PPADDING, self.LPADDING);
+    self.gama = (self.g0,self.g1,self.g2,self.g3) = (self.PPADDING,self.LPADDING, 0, self.NPADDING);
+    self.delta = (self.d0,self.d1,self.d2,self.d3) = (self.PPADDING, self.LPADDING, self.PPADDING, self.LPADDING);
     #find out this
     #only works when shift is 1, must add offset
     self.OFFSET ={
