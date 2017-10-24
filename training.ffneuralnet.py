@@ -16,12 +16,12 @@ BATCH_SIZE = 77;
 BSPEC = 0.1999;
 WSPEC = 0.1999;
 DELTASPEC = 0.0666;
-EPOCH = 99;
+EPOCH = 30;
 STEP = 66;
 X0_LEN = 784;
 H0_LEN = 60;
 H1_LEN = 30;
-L = 0.0006969;
+L = 0.00066969;
 
 def find_weights_random(w,b):
   m_error = [];
@@ -62,6 +62,7 @@ def find_weights_pseudoinverse():
   
 def find_weights_backdrop(w, b):
   m_error = [];
+  l = L;
   for i in range(EPOCH):
     # this is magick
     new_error_sum = 0;
@@ -82,19 +83,36 @@ def find_weights_backdrop(w, b):
       dH0 = np.multiply(np.dot(dH1,W_t[1]),sign(h0));
       new_error = get_mean_error(batchy,P);
       new_error_sum += new_error;
-      w[0] = w[0] - L * np.dot(np.transpose(batchx), dH0);
-      w[1] = w[1] - L * np.dot(np.transpose(h0), dH1);
-      w[2] = w[2] - L * np.dot(np.transpose(h1), dP);
-      b[0] = b[0] - L * np.sum(dH0, axis = 0);
-      b[1] = b[1] - L * np.sum(dH1, axis = 0);
-      b[2] = b[2] - L * np.sum(dP, axis = 0);
+      w[0] = w[0] - l * np.dot(np.transpose(batchx), dH0);
+      w[1] = w[1] - l * np.dot(np.transpose(h0), dH1);
+      w[2] = w[2] - l * np.dot(np.transpose(h1), dP);
+      b[0] = b[0] - l * np.sum(dH0, axis = 0);
+      b[1] = b[1] - l * np.sum(dH1, axis = 0);
+      b[2] = b[2] - l * np.sum(dP, axis = 0);
     new_error_sum/=STEP;
     m_error.append(new_error_sum);
     if committee(new_error_sum):
       break;
     print ("Epoch: %d, error %f" %(i, new_error_sum));
   return (w,b, m_error);
-  
+def update_lambda(l, new_error, old_error):
+  #check this
+  if (new_error > old_error):
+    operator = -1;
+  else:
+    operator = 1;
+  error_convergence = np.absolute(new_error - old_error);
+  print "error %f"% error_convergence;
+  if(error_convergence>= 0.15): 
+    return l + operator*0.000000701;
+  elif(error_convergence>= 0.04 and error_convergence < 0.15):
+    return l + operator*0.00001050;
+  elif(error_convergence>= 0.01 and error_convergence < 0.04):
+    return l + operator*0.00001100;
+  elif(error_convergence>= 0.002 and error_convergence < 0.01): 
+    return l + operator*0.00002125;
+  else:
+    return l + 0.0004150;
 def logit(y):
   return [np.log(label) - np.log(1-label) for label in y];
   
@@ -104,7 +122,7 @@ def sign(y):
   return y;
 def committee(error):
   #tests by comitte
-  return error < 0.002013013;
+  return error < 0.003013013;
 def getdif(x):
   if x > 0: return 1 
   elif x == 0: return 0
