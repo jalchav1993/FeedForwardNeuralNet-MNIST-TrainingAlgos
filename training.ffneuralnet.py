@@ -18,8 +18,8 @@ BATCH_SIZE = 77;
 BSPEC = 0.1999;
 WSPEC = 0.1999;
 DELTASPEC = 0.0666;
-EPOCH = 14;
-STEP = 46;
+EPOCH = 16;
+STEP = 45;
 X0_LEN = 784;
 H0_LEN = 90;
 H1_LEN = 60;
@@ -65,42 +65,6 @@ def find_weights_pseudoinverse():
   w.append(np.dot(np.linalg.pinv(h1), (y_l - b[2])));
   return (w,b)
   
-def find_weights_backdrop(w, b):
-  m_error = [];
-  l = L;
-  for i in range(EPOCH):
-    # this is magick
-    new_error_sum = 0;
-    (batchx, batchy) = find_random_batch(X, Y);
-    # augmenting the set
-    # check this with doctor olac
-    y_l = [y * 0.9 + 0.05 for y in batchy];
-    for j in range(STEP):
-      h0 = F.relu(np.dot(batchx,w[0])+ b[0]);
-      h1 = F.relu(np.dot(h0,w[1]) + b[1]);
-      P = F.sigmoid(np.dot(h1,w[2]) + b[2]);
-      #is this the hadamard product
-      dP_ = np.multiply((P - y_l),P);
-      dP= np.multiply(dP_ ,(1-P));
-      #transposed weights concatenated
-      W_t = [np.transpose(weight) for weight in w];
-      dH1 = np.multiply(np.dot(dP,W_t[2]), sign(h1));
-      dH0 = np.multiply(np.dot(dH1,W_t[1]),sign(h0));
-      new_error = get_mean_error(batchy,P);
-      new_error_sum += new_error;
-      w[0] = w[0] - l * np.dot(np.transpose(batchx), dH0);
-      w[1] = w[1] - l * np.dot(np.transpose(h0), dH1);
-      w[2] = w[2] - l * np.dot(np.transpose(h1), dP);
-      b[0] = b[0] - l * np.sum(dH0, axis = 0);
-      b[1] = b[1] - l * np.sum(dH1, axis = 0);
-      b[2] = b[2] - l * np.sum(dP, axis = 0);
-    new_error_sum/=STEP;
-    m_error.append(new_error_sum);
-    if committee(new_error_sum):
-      break;
-    print ("Epoch: %d, error %f" %(i, new_error_sum));
-  return (w,b, m_error);
-
 def find_weights_backdrop_l2(train_v, test_v,w, b, alpha_reg, beta, flag):
   (x_train,y_train, train_class) = train_v
   (x_test,y_test, test_class) = test_v
@@ -157,10 +121,10 @@ def find_weights_backdrop_l2(train_v, test_v,w, b, alpha_reg, beta, flag):
     alpha_it = alpha_reg;
     #greedy  
     print ("Epoch: %d, accuracy test %f, accuracy train %f" %(i, acc_sum_test,acc_sum_train));
-    if (acc_sum_test < 0.39 and flag):
+    if (acc_sum_test < 0.36 and flag):
       print "Greedy: Dropping try when accuracy < 0.39"
       return run();
-    elif(acc_sum_test >= 0.39 and flag):
+    elif(acc_sum_test >= 0.36 and flag):
       flag = False;  
   return (w,b, acc_train, acc_test);
 def run():
@@ -233,10 +197,19 @@ def dropout(x,y):
   return model.build()
 def find_random_batch(x, y):
   indexes = sample(range(TRAINING_SIZE), BATCH_SIZE)
-  return addhoc([x[i] for i in indexes], [y[i] for i in indexes]);
-def addhoc(x,y):
-  (x,y) = dropout(x,y); 
-  return tset_augmentation(x,y,1);
+  return addhoc([x[i] for i in indexes], [y[i] for i in indexes], 'all');
+  
+def addhoc(x,y, models = None):
+  if models == "all":
+    (x,y) = dropout(x,y);
+    (x,y) = tset_augmentation(x,y,1);
+    return (x,y);
+  if models == "dropout":
+    (x,y) = dropout(x,y);
+  elif models == "tset_augmentation":
+    (x,y) = tset_augmentation(x,y,1);
+  return (x,y);
+  
 def print_test(out, x, y,test_set,acc_set):
   np.set_printoptions(threshold=np.inf) #Print complete arrays
   acc, pred, loss = F.eval_out(out, test_set,y);
