@@ -12,20 +12,8 @@ from math import sqrt
 sys.path.insert(0,'./')
 from ffneuralnet import *
 class augment_model:
-  DIRECTION = ['up-up', 'up-rt','up-lt', 'rt-rt', 'dn-rt','dn-dn', 'dn-lt', 'lt-lt'];
+  DIRECTION = ['north-north', 'north-east','north-west', 'east-east', 'south-east','south-south', 'south-west', 'west-west'];
   def __init__(self, padding, vector_set_x, vector_set_y, shift):
-    global IMG_SIZE;
-    global STEP;
-    global SHIFT;
-    global PADDING;
-    global LPADDING;
-    global NPADDING;
-    global OFFSET;
-    global INSET;
-    global XSET;
-    global YSET;
-    global N;
-    global SET_SIZE;
     self.XSET = vector_set_x;
     self.YSET = vector_set_y;
     self.SET_SIZE = len(vector_set_x);
@@ -43,24 +31,24 @@ class augment_model:
     #find out this
     #only works when shift is 1, must add offset
     self.OFFSET ={
-      'up-up':self.alpha, 
-      'up-rt':self.beta,
-      'up-lt':self.alpha, 
-      'rt-rt':self.beta, 
-      'dn-rt':self.delta,
-      'dn-dn':self.gama, 
-      'dn-lt':self.gama, 
-      'lt-lt':self.alpha
+      'north-north':self.alpha, 
+      'north-east':self.beta,
+      'north-west':self.alpha, 
+      'east-east':self.beta, 
+      'south-east':self.delta,
+      'south-south':self.gama, 
+      'south-west':self.gama, 
+      'west-west':self.alpha
     }
     self.INSET = {
-      'up-up':self.gama, 
-      'up-rt':self.gama,
-      'up-lt':self.delta, 
-      'rt-rt':self.alpha, 
-      'dn-rt':self.alpha,
-      'dn-dn':self.alpha, 
-      'dn-lt':self.beta, 
-      'lt-lt':self.beta
+      'north-north':self.gama, 
+      'north-east':self.gama,
+      'north-west':self.delta, 
+      'east-east':self.alpha, 
+      'south-east':self.alpha,
+      'south-south':self.alpha, 
+      'south-west':self.beta, 
+      'west-west':self.beta
     }
 
   def shift_vect(self, vector, direction):
@@ -90,13 +78,36 @@ class augment_model:
     c_x = [];
     c_y = [];
     for i in range(self.SET_SIZE):
-      #8 vectors
-      for d in self.DIRECTION:
-        c_x.append(self.filterimg(self.XSET[i], d));
-        c_y.append(self.YSET[i]);
+      #8 vectors from original vector element of x_train, shifted
+      vector_x = vector_r = self.XSET[i];
+      vector_y = self.YSET[i];
+      label = np.argmax(vector_y);
+      if label == 0:
+        #comittee 
+        (c_x, c_y) = self.rotate_img(c_x, c_y, vector_r, vector_y)
+      (c_x, c_y) = self.shift_to(c_x, c_y, vector_x, vector_y)
     return (c_x, c_y);
-
-  def filterimg(self, vector, direction):
+    
+  def shift_to(self, x, y, vector_x, vector_y):
+    #keep a copy of original
+    x.append(vector_x);
+    y.append(vector_y);
+    for d in self.DIRECTION:
+        #for every direction
+        x.append(self.filter_img(vector_x, d));
+        y.append(vector_y);
+    return (x, y);
+  def rotate_img(self, x, y, vector_x, vector_y):
+    #rotate 3 * 90 = 270 degrees
+    # 1 make vector square
+    # 2 forate, for each rotation, flatten and append
+    vector_x = self.square_vect(vector_x);
+    for i in range(3):
+      vector_x = np.rot90(vector_x);
+      x.append(vector_x.flatten());
+      y.append(vector_y);
+    return (x, y)
+  def filter_img(self, vector, direction):
     # 1 make vector square
     # 2 pad this vector
     # 3 shift inner numbers
